@@ -1,0 +1,24 @@
+<br-headline br-title="Notification" br-loading="model.loading"
+  br-options="{menu: false}"></br-headline>
+<form class="form-horizontal" role="form">
+  <fieldset>
+    <br-radio-group br-model="model.settings.email"
+      br-group="[{label: 'Enable', value: true}, {label: 'Disable', value: false}]"
+      br-options="{inline: true, name: 'email', label: 'Email'}">
+      Please select an email notification option.
+    </br-radio-group>
+    <div class="form-group">
+      <div class="col-sm-offset-3 col-sm-8">
+        <span ng-show="model.loading">
+          <i class="fa fa-refresh fa-spin text-muted"></i>
+        </span>        
+        <button type="button" class="btn btn-primary"
+          ng-disabled="model.loading"
+          ng-click="model.update()"><i class="fa fa-check"></i> Update</button>
+        <button type="button" class="btn btn-default"
+          ng-disabled="model.loading"
+          ng-click="model.cancel()">Cancel</button>
+      </div>
+    </div>
+  </fieldset>
+</form>
