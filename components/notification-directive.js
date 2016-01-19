@@ -21,9 +21,9 @@ function factory(brNotificationService, config) {
     var model = scope.model = {};
     model.loading = true;
     model.methods = config.data['bedrock-messages-push'].methods;
-    model.storedSettings = {};
     model.settings = {};
-    model.defaultSettings = {
+    var storedSettings = {};
+    var defaultSettings = {
       email: {
         enable: false,
         interval: 'daily'
@@ -36,13 +36,12 @@ function factory(brNotificationService, config) {
 
     brNotificationService.get(scope.userId)
       .then(function(result) {
-        model.storedSettings =
-          result.data.length === 1 ? result.data[0].value : {};
+        storedSettings = result.data.length === 1 ? result.data[0].value : {};
         // required so that angular extend does not link model.storedSettings
         // with model.settings
-        var storedSettings = angular.copy(model.storedSettings);
-        var defaultSettings = angular.copy(model.defaultSettings);
-        angular.extend(model.settings, defaultSettings, storedSettings);
+        var stored = angular.copy(storedSettings);
+        var def = angular.copy(defaultSettings);
+        angular.extend(model.settings, def, stored);
         model.loading = false;
         scope.$apply();
       });
@@ -57,16 +56,16 @@ function factory(brNotificationService, config) {
       brNotificationService.update(options)
         .then(function(result) {
           model.loading = false;
-          model.storedSettings = angular.copy(model.settings);
+          storedSettings = angular.copy(model.settings);
           scope.$apply();
         });
     };
 
     model.cancel = function() {
       // stored settings might be an empty object
-      var storedSettings = angular.copy(model.storedSettings);
-      var defaultSettings = angular.copy(model.defaultSettings);
-      angular.extend(model.settings, defaultSettings, storedSettings);
+      var stored = angular.copy(storedSettings);
+      var def = angular.copy(defaultSettings);
+      angular.extend(model.settings, def, stored);
     };
   }
 }
