@@ -2,16 +2,39 @@
   br-options="{menu: false}"></br-headline>
 <form class="form-horizontal" role="form">
   <fieldset>
-    <br-radio-group br-model="model.settings.email"
-      br-group="[{label: 'Enable', value: true}, {label: 'Disable', value: false}]"
-      br-options="{inline: true, name: 'email', label: 'Email'}">
-      Please select an email notification option.
-    </br-radio-group>
+    <div ng-show="model.methods.email.enable">
+      <br-radio-group br-model="model.settings.email.enable"
+        br-group="[{label: 'Enable', value: true}, {label: 'Disable', value: false}]"
+        br-options="{inline: true, name: 'email', label: 'Email'}">
+        Please select an email notification option.
+      </br-radio-group>
+      <div ng-show="model.settings.email.enable">
+        <br-radio-group br-model="model.settings.email.interval"
+          br-group="[{label: 'Daily Digest', value: 'daily'}, {label: 'Immediate', value: 'immediate'}]"
+          br-options="{inline: true, name: 'email-interval', label: 'Email Interval'}">
+          Please select an email notification option.
+        </br-radio-group>
+      </div>
+    </div>
+    <div ng-show="model.methods.sms.enable">
+      <br-radio-group br-model="model.settings.sms.enable"
+        br-group="[{label: 'Enable', value: true}, {label: 'Disable', value: false}]"
+        br-options="{inline: true, name: 'sms', label: 'SMS'}">
+        Please select an SMS notification option.
+      </br-radio-group>
+      <div ng-show="model.settings.sms.enable">
+        <br-radio-group br-model="model.settings.sms.interval"
+          br-group="[{label: 'Daily Digest', value: 'daily'}, {label: 'Immediate', value: 'immediate'}]"
+          br-options="{inline: true, name: 'sms-interval', label: 'SMS Interval'}">
+          Please select an SMS notification option.
+        </br-radio-group>
+      </div>
+    </div>
     <div class="form-group">
       <div class="col-sm-offset-3 col-sm-8">
         <span ng-show="model.loading">
           <i class="fa fa-refresh fa-spin text-muted"></i>
-        </span>        
+        </span>
         <button type="button" class="btn btn-primary"
           ng-disabled="model.loading"
           ng-click="model.update()"><i class="fa fa-check"></i> Update</button>

@@ -20,14 +20,29 @@ function factory(brNotificationService, config) {
   function Link(scope) {
     var model = scope.model = {};
     model.loading = true;
-    model.settings = {
-      email: false
+    model.methods = config.data['bedrock-messages-push'].methods;
+    model.storedSettings = {};
+    model.settings = {};
+    model.defaultSettings = {
+      email: {
+        enable: false,
+        interval: 'daily'
+      },
+      sms: {
+        enable: false,
+        interval: 'immediate'
+      }
     };
 
     brNotificationService.get(scope.userId)
       .then(function(result) {
-        var options = result.data.length === 1 ? result.data[0].value : {};
-        model.settings.email = options.email || false;
+        model.storedSettings =
+          result.data.length === 1 ? result.data[0].value : {};
+        // required so that angular extend does not link model.storedSettings
+        // with model.settings
+        var storedSettings = angular.copy(model.storedSettings);
+        var defaultSettings = angular.copy(model.defaultSettings);
+        angular.extend(model.settings, defaultSettings, storedSettings);
         model.loading = false;
         scope.$apply();
       });
@@ -36,18 +51,22 @@ function factory(brNotificationService, config) {
       model.loading = true;
       var options = {
         id: scope.userId,
-        email: model.settings.email
+        email: model.settings.email,
+        sms: model.settings.sms
       };
       brNotificationService.update(options)
         .then(function(result) {
           model.loading = false;
+          model.storedSettings = angular.copy(model.settings);
           scope.$apply();
-          // display a success?
         });
     };
 
     model.cancel = function() {
-
+      // stored settings might be an empty object
+      var storedSettings = angular.copy(model.storedSettings);
+      var defaultSettings = angular.copy(model.defaultSettings);
+      angular.extend(model.settings, defaultSettings, storedSettings);
     };
   }
 }
