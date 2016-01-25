@@ -580,5 +580,85 @@ describe('bedrock-messages-push API', function() {
         }, done);
       });
     }); // end queue.pull
+    describe('queue.remove function', function() {
+      afterEach(function(done) {
+        helpers.removeCollections(
+          ['messagesPush', 'messagesPushUserSettings'], done);
+      });
+      it('removes a job by jobId', function(done) {
+        var user = mockData.identities.rsa4096.identity.id;
+        var messageId = uuid();
+        var jobId = uuid();
+        async.auto({
+          set: function(callback) {
+            var o = {
+              id: user,
+              email: {
+                enable: true,
+                interval: 'daily'
+              }
+            };
+            brPushMessages._updateSettings(null, o, callback);
+          },
+          addJob: ['set', function(callback) {
+            var messageEvent = {
+              recipient: user,
+              id: messageId
+            };
+            brPushMessages.queue.add(messageEvent, callback);
+          }],
+          pullJob: ['addJob', function(callback, results) {
+            var o = {
+              jobId: jobId,
+              method: 'email',
+              interval: 'daily'
+            };
+            brPushMessages.queue.pull(o, callback);
+          }],
+          checkPull: ['pullJob', function(callback, results) {
+            // ensure that job does exist
+            var r = results.pullJob;
+            r.messages[0].should.equal(messageId);
+            callback();
+          }],
+          act: ['checkPull', function(callback) {
+            brPushMessages.queue.remove(jobId, callback);
+          }],
+          checkResult: ['act', function(callback, results) {
+            should.exist(results.act);
+            results.act.should.be.an('object');
+            should.exist(results.act.n);
+            results.act.n.should.be.a('number');
+            results.act.n.should.equal(1);
+            callback();
+          }],
+          checkDatabase: ['act', function(callback) {
+            store.find({id: database.hash(user)}).toArray(callback);
+          }],
+          testDatabase: ['checkDatabase', function(callback, results) {
+            should.exist(results.checkDatabase);
+            results.checkDatabase.should.be.an('array');
+            results.checkDatabase.should.have.length(0);
+            callback();
+          }]
+        }, done);
+      });
+      it('does nothing if jobId is not found', function(done) {
+        var jobId = uuid();
+        async.auto({
+          act: function(callback) {
+            brPushMessages.queue.remove(jobId, callback);
+          },
+          checkResult: ['act', function(callback, results) {
+            should.exist(results.act);
+            results.act.should.be.an('object');
+            should.exist(results.act.n);
+            results.act.n.should.be.a('number');
+            results.act.n.should.equal(0);
+            callback();
+          }]
+        }, done);
+      });
+    }); // end queue.remove
   });  // end queue functions
 });
