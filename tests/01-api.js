@@ -182,7 +182,7 @@ describe('bedrock-messages-push API', function() {
     describe('queue.add function', function() {
       afterEach(function(done) {
         helpers.removeCollections(
-          ['messagesPush', 'messagesPushUserSettings'], done);
+          {collections: ['messagesPush', 'messagesPushUserSettings']}, done);
       });
       it('adds a daily job to the queue if email is enabled', function(done) {
         var user = mockData.identities.rsa4096.identity.id;
@@ -380,7 +380,7 @@ describe('bedrock-messages-push API', function() {
     describe('queue.pull function', function() {
       afterEach(function(done) {
         helpers.removeCollections(
-          ['messagesPush', 'messagesPushUserSettings'], done);
+          {collections: ['messagesPush', 'messagesPushUserSettings']}, done);
       });
       it('returns null if there are no matching jobs', function(done) {
         var user = mockData.identities.rsa4096.identity.id;
@@ -583,7 +583,7 @@ describe('bedrock-messages-push API', function() {
     describe('queue.remove function', function() {
       afterEach(function(done) {
         helpers.removeCollections(
-          ['messagesPush', 'messagesPushUserSettings'], done);
+          {collections: ['messagesPush', 'messagesPushUserSettings']}, done);
       });
       it('removes a job by jobId', function(done) {
         var user = mockData.identities.rsa4096.identity.id;
