@@ -36,7 +36,7 @@ function factory(brNotificationService, config) {
 
     brNotificationService.get(scope.userId)
       .then(function(result) {
-        storedSettings = result.data.length === 1 ? result.data[0].value : {};
+        storedSettings = result.data;
         // required so that angular extend does not link model.storedSettings
         // with model.settings
         var stored = angular.copy(storedSettings);
