@@ -181,11 +181,10 @@ describe('bedrock-messages-push API', function() {
   describe('queue functions', function() {
     describe('queue.add function', function() {
       afterEach(function(done) {
-        helpers.removeCollection('messagesPush', done);
+        helpers.removeCollections(
+          ['messagesPush', 'messagesPushUserSettings'], done);
       });
       it('adds a daily job to the queue if email is enabled', function(done) {
-        // add settings
-        // add call add
         var user = mockData.identities.rsa4096.identity.id;
         var messageId = uuid();
         async.auto({
@@ -248,8 +247,6 @@ describe('bedrock-messages-push API', function() {
         }, done);
       });
       it('appends a message to an existing job', function(done) {
-        // add settings
-        // add call add
         var user = mockData.identities.rsa4096.identity.id;
         var messageIdAlpha = uuid();
         var messageIdBeta = uuid();
@@ -307,8 +304,6 @@ describe('bedrock-messages-push API', function() {
         }, done);
       });
       it('adds a job for each enabled notification method', function(done) {
-        // add settings
-        // add call add
         var user = mockData.identities.rsa4096.identity.id;
         var messageId = uuid();
         async.auto({
@@ -382,5 +377,208 @@ describe('bedrock-messages-push API', function() {
         }, done);
       });
     }); // end queue.add
+    describe('queue.pull function', function() {
+      afterEach(function(done) {
+        helpers.removeCollections(
+          ['messagesPush', 'messagesPushUserSettings'], done);
+      });
+      it('returns null if there are no matching jobs', function(done) {
+        var user = mockData.identities.rsa4096.identity.id;
+        var messageId = uuid();
+        var jobId = uuid();
+        async.auto({
+          act: function(callback, results) {
+            var o = {
+              jobId: jobId,
+              method: 'email',
+              interval: 'daily'
+            };
+            brPushMessages.queue.pull(o, callback);
+          },
+          testResults: ['act', function(callback, results) {
+            should.not.exist(results.act);
+            callback();
+          }]
+        }, done);
+      });
+      it('pull a job from the queue with a lock', function(done) {
+        var user = mockData.identities.rsa4096.identity.id;
+        var messageId = uuid();
+        var jobId = uuid();
+        async.auto({
+          set: function(callback) {
+            var o = {
+              id: user,
+              email: {
+                enable: true,
+                interval: 'daily'
+              }
+            };
+            brPushMessages._updateSettings(null, o, callback);
+          },
+          addJob: ['set', function(callback) {
+            var messageEvent = {
+              recipient: user,
+              id: messageId
+            };
+            brPushMessages.queue.add(messageEvent, callback);
+          }],
+          act: ['addJob', function(callback, results) {
+            var o = {
+              jobId: jobId,
+              method: 'email',
+              interval: 'daily'
+            };
+            brPushMessages.queue.pull(o, callback);
+          }],
+          testResults: ['act', function(callback, results) {
+            should.exist(results.act);
+            results.act.should.be.an('object');
+            var r = results.act;
+            should.exist(r.method);
+            r.method.should.be.a('string');
+            r.method.should.equal('email');
+            should.exist(r.recipient);
+            r.recipient.should.be.a('string');
+            r.recipient.should.equal(user);
+            should.exist(r.interval);
+            r.interval.should.be.a('string');
+            r.interval.should.equal('daily');
+            should.exist(r.messages);
+            r.messages.should.be.an('array');
+            r.messages.should.have.length(1);
+            r.messages[0].should.be.a('string');
+            r.messages[0].should.equal(messageId);
+            callback();
+          }],
+          checkDatabase: ['act', function(callback) {
+            store.find({id: database.hash(user)}).toArray(callback);
+          }],
+          testDatabase: ['checkDatabase', function(callback, results) {
+            var r = results.checkDatabase[0].value;
+            // a lock should have been added to the job
+            should.exist(r.meta);
+            r.meta.should.be.an('object');
+            should.exist(r.meta.lock);
+            r.meta.lock.should.be.an('object');
+            var lock = r.meta.lock;
+            should.exist(lock.id);
+            lock.id.should.be.a('string');
+            lock.id.should.equal(jobId);
+            should.exist(lock.expires);
+            lock.expires.should.be.a('number');
+            lock.expires.should.be.gt(Date.now());
+            callback();
+          }]
+        }, done);
+      });
+      it('returns null if a queued job has an active lock', function(done) {
+        var user = mockData.identities.rsa4096.identity.id;
+        var messageId = uuid();
+        var jobId = uuid();
+        async.auto({
+          set: function(callback) {
+            var o = {
+              id: user,
+              email: {
+                enable: true,
+                interval: 'daily'
+              }
+            };
+            brPushMessages._updateSettings(null, o, callback);
+          },
+          addJob: ['set', function(callback) {
+            var messageEvent = {
+              recipient: user,
+              id: messageId
+            };
+            brPushMessages.queue.add(messageEvent, callback);
+          }],
+          first: ['addJob', function(callback, results) {
+            var o = {
+              jobId: jobId,
+              method: 'email',
+              interval: 'daily'
+            };
+            brPushMessages.queue.pull(o, callback);
+          }],
+          checkFirst: ['first', function(callback, results) {
+            // successfully pulls job the first time with a 30 sec lock
+            var r = results.first;
+            r.messages[0].should.equal(messageId);
+            callback();
+          }],
+          act: ['checkFirst', function(callback, results) {
+            // new jobId used here
+            var o = {
+              jobId: uuid(),
+              method: 'email',
+              interval: 'daily'
+            };
+            brPushMessages.queue.pull(o, callback);
+          }],
+          test: ['act', function(callback, results) {
+            should.not.exist(results.act);
+            callback();
+          }]
+        }, done);
+      });
+      it('returns a job with an expired lock', function(done) {
+        var user = mockData.identities.rsa4096.identity.id;
+        var messageId = uuid();
+        var jobId = uuid();
+        async.auto({
+          set: function(callback) {
+            var o = {
+              id: user,
+              email: {
+                enable: true,
+                interval: 'daily'
+              }
+            };
+            brPushMessages._updateSettings(null, o, callback);
+          },
+          addJob: ['set', function(callback) {
+            var messageEvent = {
+              recipient: user,
+              id: messageId
+            };
+            brPushMessages.queue.add(messageEvent, callback);
+          }],
+          first: ['addJob', function(callback, results) {
+            // specify a short lock duration for test
+            var o = {
+              jobId: jobId,
+              method: 'email',
+              interval: 'daily',
+              lockDuration: 100
+            };
+            brPushMessages.queue.pull(o, callback);
+          }],
+          checkFirst: ['first', function(callback, results) {
+            var r = results.first;
+            r.messages[0].should.equal(messageId);
+            callback();
+          }],
+          wait: ['checkFirst', function(callback) {
+            setTimeout(callback, 200);
+          }],
+          act: ['wait', function(callback, results) {
+            // new jobId used here
+            var o = {
+              jobId: uuid(),
+              method: 'email',
+              interval: 'daily'
+            };
+            brPushMessages.queue.pull(o, callback);
+          }],
+          test: ['act', function(callback, results) {
+            var r = results.act;
+            r.messages[0].should.equal(messageId);
+            callback();
+          }]
+        }, done);
+      });
+    }); // end queue.pull
   });  // end queue functions
 });

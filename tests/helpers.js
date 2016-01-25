@@ -114,21 +114,13 @@ api.prepareDatabase = function(mockData, callback) {
   ], callback);
 };
 
-api.removeCollections = function(callback) {
-  var collectionNames =
+api.removeCollections = function(options, callback) {
+  if(typeof options === 'function') {
+    callback = options;
+  }
+  var collectionNames = options.collections ||
     ['messages', 'invalidMessages', 'identity', 'publicKey', 'messagesPush',
     'messagesPushUserSettings'];
-  database.openCollections(collectionNames, function(err) {
-    async.each(collectionNames, function(collectionName, callback) {
-      database.collections[collectionName].remove({}, callback);
-    }, function(err) {
-      callback(err);
-    });
-  });
-};
-
-api.removeCollection = function(collection, callback) {
-  var collectionNames = [collection];
   database.openCollections(collectionNames, function(err) {
     async.each(collectionNames, function(collectionName, callback) {
       database.collections[collectionName].remove({}, callback);
