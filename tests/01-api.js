@@ -13,6 +13,7 @@ var bedrock = require('bedrock');
 var brIdentity = require('bedrock-identity');
 var brMessages = require('bedrock-messages');
 var brPushMessages = require('../lib/push');
+var brNotifications = require('bedrock-notifications');
 var config = bedrock.config;
 var database = require('bedrock-mongodb');
 var helpers = require('./helpers');
@@ -20,7 +21,7 @@ var mockData = require('./mock.data');
 var uuid = require('node-uuid').v4;
 
 var store = database.collections.messagesPush;
-var userSettings = database.collections.messagesPushUserSettings;
+var userSettings = database.collections.notificationPushUserSettings;
 
 describe('bedrock-messages-push API', function() {
   before(function(done) {
@@ -29,160 +30,11 @@ describe('bedrock-messages-push API', function() {
   after(function(done) {
     helpers.removeCollections(done);
   });
-  describe('updateSettings function', function() {
-    it('save a users notification settings', function(done) {
-      var user = mockData.identities.rsa4096.identity.id;
-      async.auto({
-        getIdentity: function(callback) {
-          brIdentity.get(null, user, callback);
-        },
-        act: ['getIdentity', function(callback, results) {
-          var o = {
-            id: user,
-            email: {
-              enable: true,
-              interval: 'daily'
-            }
-          };
-          brPushMessages._updateSettings(
-            results.getIdentity[0], o, callback);
-        }],
-        checkDatabase: ['act', function(callback, results) {
-          userSettings.find({}).toArray(callback);
-        }],
-        test: ['checkDatabase', function(callback, results) {
-          should.exist(results.checkDatabase);
-          results.checkDatabase[0].should.be.an('object');
-          var settings = results.checkDatabase[0];
-          should.exist(settings.id);
-          settings.id.should.be.a('string');
-          settings.id.should.equal(database.hash(user));
-          should.exist(settings.value);
-          settings.value.should.be.an('object');
-          should.exist(settings.value.email);
-          settings.value.email.should.be.an('object');
-          should.exist(settings.value.email.enable);
-          settings.value.email.enable.should.be.true;
-          should.exist(settings.value.email.interval);
-          settings.value.email.interval.should.be.a('string');
-          settings.value.email.interval.should.equal('daily');
-          callback();
-        }]
-      }, done);
-    });
-    it('update a users notification settings', function(done) {
-      var user = mockData.identities.rsa4096.identity.id;
-      async.auto({
-        getIdentity: function(callback) {
-          brIdentity.get(null, user, callback);
-        },
-        first: ['getIdentity', function(callback, results) {
-          // save initial settings
-          var o = {
-            id: user,
-            email: {
-              enable: true,
-              interval: 'daily'
-            }
-          };
-          brPushMessages._updateSettings(results.getIdentity[0], o, callback);
-        }],
-        act: ['first', function(callback, results) {
-          // update settings
-          var o = {
-            id: user,
-            email: {
-              enable: false,
-              interval: 'immediate'
-            }
-          };
-          brPushMessages._updateSettings(results.getIdentity[0], o, callback);
-        }],
-        checkDatabase: ['act', function(callback, results) {
-          userSettings.find({id: database.hash(user)}).toArray(callback);
-        }],
-        test: ['checkDatabase', function(callback, results) {
-          should.exist(results.checkDatabase);
-          results.checkDatabase[0].should.be.an('object');
-          var settings = results.checkDatabase[0];
-          should.exist(settings.id);
-          settings.id.should.be.a('string');
-          settings.id.should.equal(database.hash(user));
-          should.exist(settings.value);
-          settings.value.should.be.an('object');
-          should.exist(settings.value.email);
-          settings.value.email.should.be.an('object');
-          should.exist(settings.value.email.enable);
-          settings.value.email.enable.should.be.false;
-          should.exist(settings.value.email.interval);
-          settings.value.email.interval.should.be.a('string');
-          settings.value.email.interval.should.equal('immediate');
-          callback();
-        }]
-      }, done);
-    });
-    it('does not allow changing another user\'s settings', function(done) {
-      var userAlpha = mockData.identities.rsa4096.identity.id;
-      var userBeta = mockData.identities.rsa2048.identity.id;
-      async.auto({
-        getIdentityAlpha: function(callback) {
-          brIdentity.get(null, userAlpha, callback);
-        },
-        getIdentityBeta: function(callback) {
-          brIdentity.get(null, userBeta, callback);
-        },
-        setAlpha: ['getIdentityAlpha', function(callback, results) {
-          var o = {
-            id: userAlpha,
-            email: {
-              enable: true,
-              interval: 'daily'
-            }
-          };
-          brPushMessages._updateSettings(
-            results.getIdentityAlpha[0], o, callback);
-        }],
-        act: ['getIdentityBeta', 'setAlpha', function(callback, results) {
-          // userBeta attempts to change userAlpha's settings
-          var o = {
-            id: userAlpha,
-            email: {
-              enable: false,
-              interval: 'immediate'
-            }
-          };
-          brPushMessages._updateSettings(
-            results.getIdentityBeta[0], o, function(err, results) {
-              // should return permission denied error
-              should.exist(err);
-              err.should.be.an('object');
-              err.name.should.be.a('string');
-              err.name.should.equal('PermissionDenied');
-              should.exist(err.details);
-              err.details.should.be.an('object');
-              err.details.sysPermission.should.be.a('string');
-              err.details.sysPermission.should.equal('MESSAGE_ACCESS');
-              callback();
-            });
-        }],
-        checkDatabase: ['act', function(callback, results) {
-          userSettings.find({id: database.hash(userAlpha)}).toArray(callback);
-        }],
-        test: ['checkDatabase', function(callback, results) {
-          // ensure that the settings were not changed
-          var settings = results.checkDatabase[0];
-          settings.value.email.enable.should.be.true;
-          settings.value.email.interval.should.equal('daily');
-          callback();
-        }]
-      }, done);
-    });
-  }); // end updateSettings
   describe('queue functions', function() {
     describe('queue.add function', function() {
       afterEach(function(done) {
         helpers.removeCollections(
-          {collections: ['messagesPush', 'messagesPushUserSettings']}, done);
+          {collections: ['messagesPush', 'notificationPushUserSettings']}, done);
       });
       it('adds a daily job to the queue if email is enabled', function(done) {
         var user = mockData.identities.rsa4096.identity.id;
@@ -196,7 +48,7 @@ describe('bedrock-messages-push API', function() {
                 interval: 'daily'
               }
             };
-            brPushMessages._updateSettings(null, o, callback);
+            brNotifications._updateSettings(null, o, callback);
           },
           act: ['set', function(callback) {
             var messageEvent = {
@@ -259,7 +111,7 @@ describe('bedrock-messages-push API', function() {
                 interval: 'daily'
               }
             };
-            brPushMessages._updateSettings(null, o, callback);
+            brNotifications._updateSettings(null, o, callback);
           },
           first: ['set', function(callback) {
             var messageEvent = {
@@ -319,7 +171,7 @@ describe('bedrock-messages-push API', function() {
                 interval: 'immediate'
               }
             };
-            brPushMessages._updateSettings(null, o, callback);
+            brNotifications._updateSettings(null, o, callback);
           },
           act: ['set', function(callback) {
             var messageEvent = {
@@ -380,7 +232,7 @@ describe('bedrock-messages-push API', function() {
     describe('queue.pull function', function() {
       afterEach(function(done) {
         helpers.removeCollections(
-          {collections: ['messagesPush', 'messagesPushUserSettings']}, done);
+          {collections: ['messagesPush', 'notificationPushUserSettings']}, done);
       });
       it('returns null if there are no matching jobs', function(done) {
         var user = mockData.identities.rsa4096.identity.id;
@@ -414,7 +266,7 @@ describe('bedrock-messages-push API', function() {
                 interval: 'daily'
               }
             };
-            brPushMessages._updateSettings(null, o, callback);
+            brNotifications._updateSettings(null, o, callback);
           },
           addJob: ['set', function(callback) {
             var messageEvent = {
@@ -485,7 +337,7 @@ describe('bedrock-messages-push API', function() {
                 interval: 'daily'
               }
             };
-            brPushMessages._updateSettings(null, o, callback);
+            brNotifications._updateSettings(null, o, callback);
           },
           addJob: ['set', function(callback) {
             var messageEvent = {
@@ -536,7 +388,7 @@ describe('bedrock-messages-push API', function() {
                 interval: 'daily'
               }
             };
-            brPushMessages._updateSettings(null, o, callback);
+            brNotifications._updateSettings(null, o, callback);
           },
           addJob: ['set', function(callback) {
             var messageEvent = {
@@ -583,7 +435,7 @@ describe('bedrock-messages-push API', function() {
     describe('queue.remove function', function() {
       afterEach(function(done) {
         helpers.removeCollections(
-          {collections: ['messagesPush', 'messagesPushUserSettings']}, done);
+          {collections: ['messagesPush', 'notificationPushUserSettings']}, done);
       });
       it('removes a job by jobId', function(done) {
         var user = mockData.identities.rsa4096.identity.id;
@@ -598,7 +450,7 @@ describe('bedrock-messages-push API', function() {
                 interval: 'daily'
               }
             };
-            brPushMessages._updateSettings(null, o, callback);
+            brNotifications._updateSettings(null, o, callback);
           },
           addJob: ['set', function(callback) {
             var messageEvent = {
@@ -622,7 +474,9 @@ describe('bedrock-messages-push API', function() {
             callback();
           }],
           act: ['checkPull', function(callback) {
-            brPushMessages.queue.remove(jobId, callback);
+            // TODO: See if this test was breaking before, too (was putting in
+            // jobId when it was meant to be passed as an option type)
+            brPushMessages.queue.remove({jobId: jobId}, callback);
           }],
           checkResult: ['act', function(callback, results) {
             should.exist(results.act);

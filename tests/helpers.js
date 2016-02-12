@@ -120,7 +120,7 @@ api.removeCollections = function(options, callback) {
   }
   var collectionNames = options.collections ||
     ['messages', 'invalidMessages', 'identity', 'publicKey', 'messagesPush',
-    'messagesPushUserSettings'];
+    'notificationPushUserSettings'];
   database.openCollections(collectionNames, function(err) {
     async.each(collectionNames, function(collectionName, callback) {
       database.collections[collectionName].remove({}, callback);
