@@ -25,17 +25,9 @@
   "homepage": "https://github.com/digitalbazaar/bedrock-messages-push",
   "dependencies": {
     "async": "^1.5.1",
-    "lodash": "^3.10.1",
+    "lodash": "^4.0.0",
     "node-uuid": "^1.4.7",
-    "request": "^2.67.0",
-    "bedrock": "^1.0.0",
-    "bedrock-express": "^2.0.0",
-    "bedrock-mongodb": "^2.0.0",
-    "bedrock-passport": "^3.0.0",
-    "bedrock-permission": "^2.0.0",
-    "bedrock-rest": "^2.0.0",
-    "bedrock-validation": "^2.0.0",
-    "bedrock-notifications": "digitalbazaar/bedrock-notifications#master"
+    "request": "^2.67.0"
   },
   "peerDependencies": {
     "bedrock": "^1.0.0",
