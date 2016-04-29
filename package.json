@@ -34,10 +34,10 @@
     "bedrock-express": "^2.0.0",
     "bedrock-mongodb": "^2.0.0",
     "bedrock-passport": "^3.0.0",
-    "bedrock-permission": "^2.0.0",
+    "bedrock-permission": "^2.3.0",
     "bedrock-rest": "^2.0.0",
     "bedrock-validation": "^2.0.0",
-    "bedrock-notifications": "digitalbazaar/bedrock-notifications#master"
+    "bedrock-notifications": "^0.1.0"
   },
   "directories": {
     "lib": "./lib"
