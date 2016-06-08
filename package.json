@@ -1,6 +1,6 @@
 {
   "name": "bedrock-messages-push",
-  "version": "0.1.1-dev",
+  "version": "0.1.1",
   "description": "Bedrock messages push module",
   "main": "./lib/push",
   "scripts": {
