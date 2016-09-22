@@ -1,27 +1,21 @@
 /*
  * Copyright (c) 2016 Digital Bazaar, Inc. All rights reserved.
  */
-/* globals describe, before, after, it, should, beforeEach, afterEach */
+/* globals describe, before, after, it, should, afterEach */
 /* jshint node: true */
 /* jshint -W030 */
 
 'use strict';
 
-var _ = require('lodash');
 var async = require('async');
-var bedrock = require('bedrock');
-var brIdentity = require('bedrock-identity');
-var brMessages = require('bedrock-messages');
-var brPushMessages = require('../lib/push');
+var brPushMessages = require('bedrock-messages-push');
 var brNotifications = require('bedrock-notifications');
-var config = bedrock.config;
 var database = require('bedrock-mongodb');
 var helpers = require('./helpers');
 var mockData = require('./mock.data');
 var uuid = require('node-uuid').v4;
 
 var store = database.collections.messagesPush;
-var userSettings = database.collections.notificationPushUserSettings;
 
 describe('bedrock-messages-push API', function() {
   before(function(done) {
@@ -33,8 +27,9 @@ describe('bedrock-messages-push API', function() {
   describe('queue functions', function() {
     describe('queue.add function', function() {
       afterEach(function(done) {
-        helpers.removeCollections(
-          {collections: ['messagesPush', 'notificationPushUserSettings']}, done);
+        helpers.removeCollections({
+          collections: ['messagesPush', 'notificationPushUserSettings']
+        }, done);
       });
       it('adds a daily job to the queue if email is enabled', function(done) {
         var user = mockData.identities.rsa4096.identity.id;
@@ -231,15 +226,14 @@ describe('bedrock-messages-push API', function() {
     }); // end queue.add
     describe('queue.pull function', function() {
       afterEach(function(done) {
-        helpers.removeCollections(
-          {collections: ['messagesPush', 'notificationPushUserSettings']}, done);
+        helpers.removeCollections({
+          collections: ['messagesPush', 'notificationPushUserSettings']
+        }, done);
       });
       it('returns null if there are no matching jobs', function(done) {
-        var user = mockData.identities.rsa4096.identity.id;
-        var messageId = uuid();
         var jobId = uuid();
         async.auto({
-          act: function(callback, results) {
+          act: function(callback) {
             var o = {
               jobId: jobId,
               method: 'email',
@@ -275,7 +269,7 @@ describe('bedrock-messages-push API', function() {
             };
             brPushMessages.queue.add(messageEvent, callback);
           }],
-          act: ['addJob', function(callback, results) {
+          act: ['addJob', function(callback) {
             var o = {
               jobId: jobId,
               method: 'email',
@@ -346,7 +340,7 @@ describe('bedrock-messages-push API', function() {
             };
             brPushMessages.queue.add(messageEvent, callback);
           }],
-          first: ['addJob', function(callback, results) {
+          first: ['addJob', function(callback) {
             var o = {
               jobId: jobId,
               method: 'email',
@@ -360,7 +354,7 @@ describe('bedrock-messages-push API', function() {
             r.messages[0].should.equal(messageId);
             callback();
           }],
-          act: ['checkFirst', function(callback, results) {
+          act: ['checkFirst', function(callback) {
             // new jobId used here
             var o = {
               jobId: uuid(),
@@ -397,7 +391,7 @@ describe('bedrock-messages-push API', function() {
             };
             brPushMessages.queue.add(messageEvent, callback);
           }],
-          first: ['addJob', function(callback, results) {
+          first: ['addJob', function(callback) {
             // specify a short lock duration for test
             var o = {
               jobId: jobId,
@@ -415,7 +409,7 @@ describe('bedrock-messages-push API', function() {
           wait: ['checkFirst', function(callback) {
             setTimeout(callback, 200);
           }],
-          act: ['wait', function(callback, results) {
+          act: ['wait', function(callback) {
             // new jobId used here
             var o = {
               jobId: uuid(),
@@ -434,8 +428,9 @@ describe('bedrock-messages-push API', function() {
     }); // end queue.pull
     describe('queue.remove function', function() {
       afterEach(function(done) {
-        helpers.removeCollections(
-          {collections: ['messagesPush', 'notificationPushUserSettings']}, done);
+        helpers.removeCollections({
+          collections: ['messagesPush', 'notificationPushUserSettings']
+        }, done);
       });
       it('removes a job by jobId', function(done) {
         var user = mockData.identities.rsa4096.identity.id;
@@ -459,7 +454,7 @@ describe('bedrock-messages-push API', function() {
             };
             brPushMessages.queue.add(messageEvent, callback);
           }],
-          pullJob: ['addJob', function(callback, results) {
+          pullJob: ['addJob', function(callback) {
             var o = {
               jobId: jobId,
               method: 'email',

@@ -1,0 +1,50 @@
+{
+  "name": "bedrock-messages-push-test",
+  "version": "0.0.1-0",
+  "description": "Bedrock messages push module",
+  "main": "test",
+  "scripts": {
+    "test": "node --preserve-symlinks test.js test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/digitalbazaar/bedrock-messages-push"
+  },
+  "keywords": [
+    "bedrock",
+    "messages"
+  ],
+  "author": {
+    "name": "Digital Bazaar, Inc.",
+    "email": "support@digitalbazaar.com",
+    "url": "http://digitalbazaar.com"
+  },
+  "bugs": {
+    "url": "https://github.com/digitalbazaar/bedrock-messages-push/issues"
+  },
+  "homepage": "https://github.com/digitalbazaar/bedrock-messages-push",
+  "dependencies": {
+    "async": "^1.5.1",
+    "bedrock": "^1.0.0",
+    "bedrock-docs": "^2.0.2",
+    "bedrock-express": "^2.0.6",
+    "bedrock-identity": "^4.2.2",
+    "bedrock-jobs": "^2.0.3",
+    "bedrock-key": "^3.1.3",
+    "bedrock-messages": "^0.1.4",
+    "bedrock-messages-push": "^0.1.1",
+    "bedrock-mongodb": "^3.0.0",
+    "bedrock-notifications": "^0.1.0",
+    "bedrock-passport": "^3.1.7",
+    "bedrock-permission": "^2.3.2",
+    "bedrock-requirejs": "^2.0.3",
+    "bedrock-rest": "^2.0.1",
+    "bedrock-server": "^2.1.3",
+    "bedrock-test": "^1.0.0",
+    "bedrock-validation": "^2.2.0",
+    "bedrock-views": "^4.0.0",
+    "lodash": "^4.0.0",
+    "request": "^2.67.0",
+    "uuid": "^2.0.3"
+  }
+}

@@ -24,18 +24,13 @@
   "dependencies": {
     "async": "^1.5.1",
     "lodash": "^4.0.0",
-    "node-uuid": "^1.4.7",
-    "request": "^2.67.0"
+    "uuid": "^2.0.3"
   },
   "peerDependencies": {
     "bedrock": "^1.0.0",
-    "bedrock-express": "^2.0.3",
     "bedrock-mongodb": "^3.0.0",
-    "bedrock-passport": "^3.0.0",
-    "bedrock-permission": "^2.3.0",
-    "bedrock-rest": "^2.0.0",
-    "bedrock-validation": "^2.0.0",
-    "bedrock-notifications": "^0.1.0"
+    "bedrock-notifications": "^0.1.0",
+    "bedrock-views": "^4.0.0"
   },
   "directories": {
     "lib": "./lib"

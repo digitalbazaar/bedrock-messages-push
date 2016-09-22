@@ -3,7 +3,7 @@
  */
  /* jshint node: true */
 
- 'use strict';
+'use strict';
 
 var _ = require('lodash');
 var async = require('async');
@@ -121,7 +121,7 @@ api.removeCollections = function(options, callback) {
   var collectionNames = options.collections ||
     ['messages', 'invalidMessages', 'identity', 'publicKey', 'messagesPush',
     'notificationPushUserSettings'];
-  database.openCollections(collectionNames, function(err) {
+  database.openCollections(collectionNames, function() {
     async.each(collectionNames, function(collectionName, callback) {
       database.collections[collectionName].remove({}, callback);
     }, function(err) {
