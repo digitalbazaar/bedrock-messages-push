@@ -2,10 +2,8 @@
   "name": "bedrock-messages-push",
   "version": "0.1.2-dev",
   "description": "Bedrock messages push module",
-  "main": "./lib/push",
-  "scripts": {
-    "test": "node bedrock/test.js test"
-  },
+  "main": "./lib",
+  "scripts": {},
   "repository": {
     "type": "git",
     "url": "https://github.com/digitalbazaar/bedrock-messages-push"
