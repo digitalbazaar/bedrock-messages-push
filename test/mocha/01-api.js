@@ -197,12 +197,9 @@ describe('bedrock-messages-push API', function() {
           }],
           checkDatabase: ['act', function(callback) {
             store.find({
-              $query: {
-                id: database.hash(user)
-              },
-              $orderby: {
-                'value.method': 1
-              }
+              id: database.hash(user)
+            }, {
+              sort: 'value.method'
             }).toArray(callback);
           }],
           testDatabase: ['checkDatabase', function(callback, results) {
