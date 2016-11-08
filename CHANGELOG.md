@@ -1,5 +1,10 @@
 # bedrock-messages-push ChangeLog
 
+## 0.1.4 - 2016-11-08
+
+### Fixed
+- Sorting issue in test suite that would cause intermittent failure.
+
 ## 0.1.3 - 2016-11-08
 
 ### Changed
