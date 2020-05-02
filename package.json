@@ -3,7 +3,10 @@
   "version": "0.1.5-0",
   "description": "Bedrock messages push module",
   "main": "./lib",
-  "scripts": {},
+  "scripts": {
+    "snyk-protect": "snyk protect",
+    "prepublish": "npm run snyk-protect"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/digitalbazaar/bedrock-messages-push"
@@ -24,7 +27,8 @@
   "dependencies": {
     "async": "^1.5.1",
     "lodash": "^4.0.0",
-    "uuid": "^2.0.3"
+    "uuid": "^2.0.3",
+    "snyk": "^1.316.2"
   },
   "peerDependencies": {
     "bedrock": "^1.0.0",
@@ -34,5 +38,6 @@
   },
   "directories": {
     "lib": "./lib"
-  }
+  },
+  "snyk": true
 }
